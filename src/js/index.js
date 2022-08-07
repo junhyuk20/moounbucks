@@ -19,22 +19,12 @@
 // -[x] 에스프레소 메뉴를 페이지에 그려준다.
 
 // TODO 품질 상태 관리
-// -[] 품절 상태인 경우를 보여줄 수 있게, 품절 버튼을 추가하고 sold-out class를 추가하여 상태를 변경한다.
-// -[] 품절 버튼을 버튼을 추가한다.
-// -[] 품절 버튼을 클릭하면 localStorage에 상태값이 저장된다.
-// -[] 클릭이벤트에서 가장가까운 li태그의 class속성 값에 sold-out을 추가한다.
-
-const $ = (selector) => document.querySelector(selector);
-
-// localStorage에 저장 형식은 key, value 형식이며  value는 무조건 문자열로 저장해야 된다.
-const store = {
-  setLocalStorage(menu) {
-    localStorage.setItem("menu", JSON.stringify(menu));
-  },
-  getLocalStorage() {
-    return JSON.parse(localStorage.getItem("menu"));
-  },
-};
+// -[x] 품절 상태인 경우를 보여줄 수 있게, 품절 버튼을 추가하고 sold-out class를 추가하여 상태를 변경한다.
+// -[x] 품절 버튼을 버튼을 추가한다.
+// -[x] 품절 버튼을 클릭하면 localStorage에 상태값이 저장된다.
+// -[x] 클릭이벤트에서 가장가까운 li태그의 class속성 값에 sold-out을 추가한다.
+import { $ } from "./utils/dom.js";
+import store from "./store/index.js";
 
 function App() {
   // 상태는 변하는 데이터, 이 앱에서 변하는 것이 무엇인가? - 메뉴명, 개수(이녀석은 너무 간단해서 제외 해도 된다.) 즉 상태를 관리해야 되는 녀석들은 저장되거나,변하거나 이다.
@@ -51,10 +41,12 @@ function App() {
 
   //초기화면
   this.init = () => {
+    // 로컬스토리지 값 있으면
     if (store.getLocalStorage()) {
       this.menu = store.getLocalStorage();
     }
     render();
+    initEventListeners();
   };
 
   //추가한 메뉴 그려주는 녀석
@@ -95,7 +87,7 @@ function App() {
     updateMenuCount();
   };
   const updateMenuCount = () => {
-    const menuCount = $("#menu-list").querySelectorAll("li").length;
+    const menuCount = this.menu[this.currentCategory].length;
     $(".menu-count").innerText = `총 ${menuCount} 개`;
   };
   const addMenuName = () => {
@@ -115,10 +107,10 @@ function App() {
   const updateMenuName = (e) => {
     const menuId = e.target.closest("li").dataset.menuId; // jQuery .data() 메서드와 동일한 메서드 dataset
     const menuName = e.target.closest("li").querySelector(".menu-name");
-    const updatedMenuName = prompt("메뉴명을 수정하세요", menuName.innerText);
+    const updatedMenuName = prompt("메뉴명을 수정하세요", menuName.innerText); //프롬프트에서 사용자가 작성한 내용이 들어감
     this.menu[this.currentCategory][menuId].name = updatedMenuName;
     store.setLocalStorage(this.menu);
-    menuName.innerText = updatedMenuName;
+    render();
   };
   const removeMenuName = (e) => {
     if (confirm(`정말 삭제하시겠습니까?`)) {
@@ -126,7 +118,7 @@ function App() {
       this.menu[this.currentCategory].splice(menuId, 1); // 배열에서 요소 삭제할 떄
       store.setLocalStorage(this.menu); // 로컬스토리지 업뎃
       e.target.closest("li").remove();
-      updateMenuCount();
+      render();
     }
   };
 
@@ -137,47 +129,47 @@ function App() {
     store.setLocalStorage(this.menu);
     render();
   };
-
-  $("#menu-list").addEventListener("click", (e) => {
-    //수정 버튼 클릭시
-    if (e.target.classList.contains("menu-edit-button")) {
-      updateMenuName(e);
-      return; // 해당 if문만 돌고 끝내기
-    }
-    //삭제 버튼 클릭시
-    if (e.target.classList.contains("menu-remove-button")) {
-      removeMenuName(e);
-      return;
-    }
-    //품절 버튼 클릭시
-    if (e.target.classList.contains("menu-sold-out-button")) {
-      soldOutMenu(e);
-      return;
-    }
-  });
-
-  //엔터키를 눌렀을 때 form 태그가 자동으로 전송되는걸 막아준다.
-  $("#menu-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-  });
-
-  // 마우스로 확인버튼 클릭했을 때, 이부분 제로초 고급강좌 첫번째 보자
-  $("#menu-submit-button").addEventListener("click", addMenuName);
-
-  // 메뉴의 이름을 입력받는 곳
-  $("#menu-name").addEventListener("keypress", (e) => {
-    if (e.key !== "Enter") return;
-    addMenuName();
-  });
-  $("nav").addEventListener("click", (e) => {
-    const isCategoryButton = e.target.classList.contains("cafe-category-name"); // 결괏값 true , false
-    if (isCategoryButton) {
-      const categoryName = e.target.dataset.categoryName;
-      this.currentCategory = categoryName;
-      $("#category-title").innerText = `${e.target.innerText} 메뉴 관리`;
-      render();
-    }
-  });
+  const initEventListeners = () => {
+    $("#menu-list").addEventListener("click", (e) => {
+      //수정 버튼 클릭시
+      if (e.target.classList.contains("menu-edit-button")) {
+        updateMenuName(e);
+        return; // 해당 if문만 돌고 끝내기
+      }
+      //삭제 버튼 클릭시
+      if (e.target.classList.contains("menu-remove-button")) {
+        removeMenuName(e);
+        return;
+      }
+      //품절 버튼 클릭시
+      if (e.target.classList.contains("menu-sold-out-button")) {
+        soldOutMenu(e);
+        return;
+      }
+    });
+    //엔터키를 눌렀을 때 form 태그가 자동으로 전송되는걸 막아준다.
+    $("#menu-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+    });
+    // 마우스로 확인버튼 클릭했을 때, 이부분 제로초 고급강좌 첫번째 보자
+    $("#menu-submit-button").addEventListener("click", addMenuName);
+    // 메뉴의 이름을 입력받는 곳
+    $("#menu-name").addEventListener("keypress", (e) => {
+      if (e.key !== "Enter") return;
+      addMenuName();
+    });
+    //메뉴 카테고리 클릭시
+    $("nav").addEventListener("click", (e) => {
+      const isCategoryButton =
+        e.target.classList.contains("cafe-category-name"); // 결괏값 true , false
+      if (isCategoryButton) {
+        const categoryName = e.target.dataset.categoryName;
+        this.currentCategory = categoryName;
+        $("#category-title").innerText = `${e.target.innerText} 메뉴 관리`;
+        render();
+      }
+    });
+  };
 }
 //App();
 const app = new App();

@@ -39,7 +39,7 @@ function App() {
   //카테고리 메뉴선택 시, 상태관리 해주는 녀석 처음화면은 espresso 카테고리로 고정
   this.currentCategory = "espresso";
 
-  //초기화면
+  // App 객체를 처음 초기화 시켜주는 녀석
   this.init = () => {
     // 로컬스토리지 값 있으면
     if (store.getLocalStorage()) {
@@ -121,7 +121,6 @@ function App() {
       render();
     }
   };
-
   const soldOutMenu = (e) => {
     const menuId = e.target.closest("li").dataset.menuId;
     this.menu[this.currentCategory][menuId].soldOut =
@@ -171,6 +170,6 @@ function App() {
     });
   };
 }
-//App();
+
 const app = new App();
 app.init();

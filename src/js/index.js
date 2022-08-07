@@ -45,21 +45,33 @@ function App() {
     teavana: [],
     desert: [],
   };
+
   //카테고리 메뉴선택 시, 상태관리 해주는 녀석 처음화면은 espresso 카테고리로 고정
   this.currentCategory = "espresso";
+
+  //초기화면
   this.init = () => {
     if (store.getLocalStorage()) {
       this.menu = store.getLocalStorage();
     }
     render();
   };
+
   //추가한 메뉴 그려주는 녀석
   const render = () => {
     const template = this.menu[this.currentCategory]
       .map((menuItem, index) => {
         return `
         <li data-menu-id=${index} class="menu-list-item d-flex items-center py-2">
-            <span class="w-100 pl-2 menu-name">${menuItem.name}</span>
+            <span class=" ${
+              menuItem.soldOut ? "sold-out" : ""
+            } w-100 pl-2 menu-name">${menuItem.name}</span>
+              <button
+                type="button"
+                class="bg-gray-50 text-gray-500 text-sm mr-1 menu-sold-out-button"
+              >
+                품절
+              </button>
             <button
               type="button"
               class="bg-gray-50 text-gray-500 text-sm mr-1 menu-edit-button"
@@ -118,14 +130,29 @@ function App() {
     }
   };
 
+  const soldOutMenu = (e) => {
+    const menuId = e.target.closest("li").dataset.menuId;
+    this.menu[this.currentCategory][menuId].soldOut =
+      !this.menu[this.currentCategory][menuId].soldOut; // toggle버튼 처럼
+    store.setLocalStorage(this.menu);
+    render();
+  };
+
   $("#menu-list").addEventListener("click", (e) => {
     //수정 버튼 클릭시
     if (e.target.classList.contains("menu-edit-button")) {
       updateMenuName(e);
+      return; // 해당 if문만 돌고 끝내기
     }
     //삭제 버튼 클릭시
     if (e.target.classList.contains("menu-remove-button")) {
       removeMenuName(e);
+      return;
+    }
+    //품절 버튼 클릭시
+    if (e.target.classList.contains("menu-sold-out-button")) {
+      soldOutMenu(e);
+      return;
     }
   });
 
